@@ -1,7 +1,7 @@
 // Builds the Dawodia Holding company values deck.
 // Usage: node build_deck.js  ->  Dawodia_Holding_Our_Values.pptx
-// Logo: assets/logo-dark.png (used on light slides) and assets/logo-light.png
-// (used on dark slides). Replace them with the official logo files and rebuild.
+// Logo: assets/logo.png (round badge on a transparent background). Colours are
+// taken from the logo: deep burgundy, crimson and silver.
 const path = require("path");
 const fs = require("fs");
 const pptxgen = require("pptxgenjs");
@@ -11,13 +11,14 @@ const ReactDOMServer = require("react-dom/server");
 const fa = require("react-icons/fa6");
 
 const C = {
-  navy: "0B1F33",
-  navy2: "15314F",
-  gold: "C8A04A",
-  goldSoft: "F4ECD8",
-  ink: "1B2733",
-  muted: "5F6B7A",
-  light: "F4F6F9",
+  navy: "4A0F26", // deep burgundy: dark panels and headings
+  gold: "B8315A", // logo crimson: accent on light backgrounds
+  silver: "D6D9DE", // logo ring: accent on dark backgrounds
+  rose: "F2A7BD", // highlight text on dark backgrounds
+  goldSoft: "F9E8EE",
+  ink: "221A1D",
+  muted: "6B6166",
+  light: "F6F4F5",
   white: "FFFFFF",
 };
 const HEAD = "Arial";
@@ -25,9 +26,7 @@ const BODY = "Calibri";
 const SERIF = "Cambria";
 
 const ASSETS = path.join(__dirname, "assets");
-const LOGO_DARK = path.join(ASSETS, "logo-dark.png");
-const LOGO_LIGHT = path.join(ASSETS, "logo-light.png");
-const LOGO_RATIO = 960 / 300;
+const LOGO = path.join(ASSETS, "logo.png");
 
 async function icon(Comp, color, px = 256) {
   const svg = ReactDOMServer.renderToStaticMarkup(
@@ -41,18 +40,18 @@ async function darkBackground() {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080">
     <defs>
       <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#0B1F33"/><stop offset="1" stop-color="#17395C"/>
+        <stop offset="0" stop-color="#2E0715"/><stop offset="1" stop-color="#6B1533"/>
       </linearGradient>
       <radialGradient id="r" cx="0.85" cy="0.2" r="0.6">
-        <stop offset="0" stop-color="#C8A04A" stop-opacity="0.18"/>
-        <stop offset="1" stop-color="#C8A04A" stop-opacity="0"/>
+        <stop offset="0" stop-color="#D6D9DE" stop-opacity="0.14"/>
+        <stop offset="1" stop-color="#D6D9DE" stop-opacity="0"/>
       </radialGradient>
     </defs>
     <rect width="1920" height="1080" fill="url(#g)"/>
     <rect width="1920" height="1080" fill="url(#r)"/>
-    <g fill="none" stroke="#C8A04A" stroke-opacity="0.14" stroke-width="2">
-      <rect x="1380" y="560" width="620" height="620" rx="40" transform="rotate(45 1690 870)"/>
-      <rect x="1470" y="650" width="440" height="440" rx="30" transform="rotate(45 1690 870)"/>
+    <g fill="none" stroke="#D6D9DE" stroke-opacity="0.14" stroke-width="2">
+      <circle cx="1700" cy="880" r="420"/>
+      <circle cx="1700" cy="880" r="300"/>
     </g>
   </svg>`;
   const buf = await sharp(Buffer.from(svg)).png().toBuffer();
@@ -69,30 +68,26 @@ async function darkBackground() {
   const bg = await darkBackground();
 
   // ---------- shared pieces ----------
-  const addLogo = (slide, onDark) => {
-    const w = 1.45;
-    slide.addImage({
-      path: onDark ? LOGO_LIGHT : LOGO_DARK,
-      x: 10 - 0.4 - w, y: 0.3, w, h: w / LOGO_RATIO,
-      altText: "Dawodia Holding logo",
-    });
+  const addLogo = (slide) => {
+    const d = 0.62;
+    slide.addImage({ path: LOGO, x: 10 - 0.4 - d, y: 0.2, w: d, h: d, altText: "Dawodia Holding logo" });
   };
 
   const addChrome = (slide, num, label, onDark) => {
-    addLogo(slide, onDark);
+    addLogo(slide);
     slide.addText(`${String(num).padStart(2, "0")}   ${label}`, {
       x: 0.5, y: 0.3, w: 5, h: 0.3, margin: 0, isTextBox: true,
       fontFace: HEAD, fontSize: 10, bold: true, charSpacing: 4,
-      color: C.gold,
+      color: onDark ? C.silver : C.gold,
     });
     slide.addText("DAWODIA HOLDING  ·  OUR VALUES", {
       x: 0.5, y: 5.2, w: 4, h: 0.25, margin: 0, isTextBox: true,
       fontFace: HEAD, fontSize: 8, charSpacing: 3,
-      color: onDark ? "8FA3B8" : "8A94A1",
+      color: onDark ? "D2B3BF" : "9A8C92",
     });
     slide.addText(String(num + 1).padStart(2, "0"), {
       x: 9.0, y: 5.2, w: 0.5, h: 0.25, margin: 0, isTextBox: true, align: "right",
-      fontFace: HEAD, fontSize: 8, color: onDark ? "8FA3B8" : "8A94A1",
+      fontFace: HEAD, fontSize: 8, color: onDark ? "D2B3BF" : "9A8C92",
     });
   };
 
@@ -102,19 +97,23 @@ async function darkBackground() {
     slide.addImage({ data: await icon(Comp, fg), x: x + pad, y: y + pad, w: d - 2 * pad, h: d - 2 * pad });
   };
 
-  const shadow = () => ({ type: "outer", color: "0B1F33", blur: 12, offset: 3, angle: 90, opacity: 0.12 });
+  const shadow = () => ({ type: "outer", color: "4A0F26", blur: 12, offset: 3, angle: 90, opacity: 0.12 });
 
   const quote = await icon(fa.FaQuoteLeft, C.gold);
+  const quoteDark = await icon(fa.FaQuoteLeft, C.silver);
 
   // =============== 1. COVER ===============
   {
     const s = pres.addSlide();
     s.background = { data: bg };
-    const w = 2.6;
-    s.addImage({ path: LOGO_LIGHT, x: 0.6, y: 0.55, w, h: w / LOGO_RATIO, altText: "Dawodia Holding logo" });
+    s.addImage({ path: LOGO, x: 0.6, y: 0.5, w: 1.0, h: 1.0, altText: "Dawodia Holding logo" });
+    s.addText([
+      { text: "DAWODIA", options: { fontSize: 20, bold: true, color: C.white, charSpacing: 6, breakLine: true } },
+      { text: "HOLDING", options: { fontSize: 11, color: C.silver, charSpacing: 10 } },
+    ], { x: 1.8, y: 0.62, w: 4, h: 0.76, margin: 0, isTextBox: true, valign: "middle", fontFace: HEAD });
     s.addText("COMPANY VALUES  ·  2026", {
       x: 0.6, y: 1.9, w: 6, h: 0.3, margin: 0, isTextBox: true,
-      fontFace: HEAD, fontSize: 11, bold: true, charSpacing: 5, color: C.gold,
+      fontFace: HEAD, fontSize: 11, bold: true, charSpacing: 5, color: C.silver,
     });
     s.addText("Our Values,\nOur Direction", {
       x: 0.6, y: 2.25, w: 7, h: 1.6, margin: 0, isTextBox: true, valign: "top",
@@ -122,11 +121,11 @@ async function darkBackground() {
     });
     s.addText("One Organization. One Vision. One Direction.", {
       x: 0.6, y: 3.9, w: 7, h: 0.4, margin: 0, isTextBox: true,
-      fontFace: SERIF, fontSize: 18, italic: true, color: "D5DEE8",
+      fontFace: SERIF, fontSize: 18, italic: true, color: "F1E1E7",
     });
     s.addText("Purpose   ·   People   ·   Excellence   ·   One Team   ·   Innovation   ·   Ownership   ·   Future", {
       x: 0.6, y: 4.85, w: 8.5, h: 0.3, margin: 0, isTextBox: true,
-      fontFace: HEAD, fontSize: 10, charSpacing: 1, color: "8FA3B8",
+      fontFace: HEAD, fontSize: 10, charSpacing: 1, color: "D2B3BF",
     });
     s.addNotes("Welcome. Today we walk through the values that unite Dawodia Holding: our purpose, our people, how we execute, how we work as one team, how we innovate, how we take ownership, and the future we are building together.");
   }
@@ -139,11 +138,11 @@ async function darkBackground() {
     s.addImage({ data: bg, x: 0, y: 0, w: 4, h: 5.625, sizing: { type: "cover", w: 4, h: 5.625 } });
     s.addText("01", {
       x: 0.5, y: 0.7, w: 2, h: 1.0, margin: 0, isTextBox: true,
-      fontFace: HEAD, fontSize: 60, bold: true, color: C.gold,
+      fontFace: HEAD, fontSize: 60, bold: true, color: C.silver,
     });
     s.addText("OUR PURPOSE", {
       x: 0.5, y: 1.8, w: 3, h: 0.3, margin: 0, isTextBox: true,
-      fontFace: HEAD, fontSize: 11, bold: true, charSpacing: 5, color: "D5DEE8",
+      fontFace: HEAD, fontSize: 11, bold: true, charSpacing: 5, color: "F1E1E7",
     });
     s.addText("One Organization.\nOne Vision.\nOne Direction.", {
       x: 0.5, y: 2.2, w: 3.2, h: 1.7, margin: 0, isTextBox: true, valign: "top",
@@ -151,13 +150,13 @@ async function darkBackground() {
     });
     s.addText("DAWODIA HOLDING  ·  OUR VALUES", {
       x: 0.5, y: 5.2, w: 3.4, h: 0.25, margin: 0, isTextBox: true,
-      fontFace: HEAD, fontSize: 8, charSpacing: 2, color: "8FA3B8",
+      fontFace: HEAD, fontSize: 8, charSpacing: 2, color: "D2B3BF",
     });
     s.addText("02", {
       x: 9.0, y: 5.2, w: 0.5, h: 0.25, margin: 0, isTextBox: true, align: "right",
-      fontFace: HEAD, fontSize: 8, color: "8A94A1",
+      fontFace: HEAD, fontSize: 8, color: "9A8C92",
     });
-    addLogo(s, false);
+    addLogo(s);
 
     const rows = [
       [fa.FaSitemap, "We are more than individual departments—we are one organization."],
@@ -177,7 +176,7 @@ async function darkBackground() {
     s.addShape(pres.shapes.ROUNDED_RECTANGLE, {
       x: 4.5, y: 4.2, w: 5.0, h: 0.75, rectRadius: 0.1, fill: { color: C.navy }, line: { color: C.navy },
     });
-    s.addImage({ data: quote, x: 4.75, y: 4.43, w: 0.3, h: 0.3 });
+    s.addImage({ data: quoteDark, x: 4.75, y: 4.43, w: 0.3, h: 0.3 });
     s.addText("Together, we turn our vision into reality.", {
       x: 5.2, y: 4.2, w: 4.2, h: 0.75, margin: 0, isTextBox: true, valign: "middle",
       fontFace: SERIF, fontSize: 17, italic: true, color: C.white,
@@ -207,7 +206,7 @@ async function darkBackground() {
       s.addShape(pres.shapes.ROUNDED_RECTANGLE, {
         x, y, w: cw, h: ch, rectRadius: 0.12, fill: { color: C.white }, line: { color: "E3E8EF" }, shadow: shadow(),
       });
-      await iconBadge(s, I, x + 0.25, y + 0.25, 0.5, C.navy, C.gold);
+      await iconBadge(s, I, x + 0.25, y + 0.25, 0.5, C.navy, C.white);
       s.addText(h, {
         x: x + 0.9, y: y + 0.25, w: cw - 1.1, h: 0.5, margin: 0, isTextBox: true, valign: "middle",
         fontFace: HEAD, fontSize: 14, bold: true, color: C.navy,
@@ -221,14 +220,14 @@ async function darkBackground() {
     s.addShape(pres.shapes.ROUNDED_RECTANGLE, {
       x: 6.75, y: 1.65, w: 2.75, h: 3.5, rectRadius: 0.12, fill: { color: C.navy }, line: { color: C.navy }, shadow: shadow(),
     });
-    s.addImage({ data: quote, x: 7.05, y: 1.95, w: 0.45, h: 0.45 });
+    s.addImage({ data: quoteDark, x: 7.05, y: 1.95, w: 0.45, h: 0.45 });
     s.addText("Strong people build strong organizations.", {
       x: 7.05, y: 2.6, w: 2.2, h: 1.8, margin: 0, isTextBox: true, valign: "top",
       fontFace: SERIF, fontSize: 22, italic: true, color: C.white,
     });
     s.addText("KEY MESSAGE", {
       x: 7.05, y: 4.6, w: 2.2, h: 0.3, margin: 0, isTextBox: true,
-      fontFace: HEAD, fontSize: 9, bold: true, charSpacing: 4, color: C.gold,
+      fontFace: HEAD, fontSize: 9, bold: true, charSpacing: 4, color: C.silver,
     });
     s.addNotes("Our people are our greatest strength. We empower ownership, encourage learning, respect every role, and build an environment where everyone can grow. Key message: Strong people build strong organizations.");
   }
@@ -257,12 +256,12 @@ async function darkBackground() {
     // connector line through badge centres
     s.addShape(pres.shapes.LINE, {
       x: x0 + colW / 2, y: cy + d / 2, w: 3 * (colW + gap), h: 0,
-      line: { color: "D9C38F", width: 1.5, dashType: "dash" },
+      line: { color: "E3A5B8", width: 1.5, dashType: "dash" },
     });
     for (let i = 0; i < 4; i++) {
       const [I, h, t] = steps[i];
       const x = x0 + i * (colW + gap);
-      await iconBadge(s, I, x + (colW - d) / 2, cy, d, C.navy, C.gold);
+      await iconBadge(s, I, x + (colW - d) / 2, cy, d, C.navy, C.white);
       s.addText(`STEP ${i + 1}`, {
         x, y: cy + d + 0.15, w: colW, h: 0.25, margin: 0, isTextBox: true, align: "center",
         fontFace: HEAD, fontSize: 9, bold: true, charSpacing: 3, color: C.gold,
@@ -312,18 +311,18 @@ async function darkBackground() {
       const x = (row === 0 ? 0.5 : 0.5 + (w + gap) / 2) + col * (w + gap);
       const y = 1.6 + row * (h + gap);
       s.addShape(pres.shapes.ROUNDED_RECTANGLE, {
-        x, y, w, h, rectRadius: 0.12, fill: { color: C.white, transparency: 92 }, line: { color: "3A5776", width: 0.75 },
+        x, y, w, h, rectRadius: 0.12, fill: { color: C.white, transparency: 92 }, line: { color: "9C5670", width: 0.75 },
       });
-      await iconBadge(s, I, x + 0.2, y + 0.25, 0.6, C.gold, C.navy);
+      await iconBadge(s, I, x + 0.2, y + 0.25, 0.6, C.silver, C.navy);
       s.addText(t, {
         x: x + 1.0, y: y + 0.1, w: w - 1.15, h: h - 0.2, margin: 0, isTextBox: true, valign: "middle",
         fontFace: BODY, fontSize: 14, color: C.white,
       });
     }
-    s.addImage({ data: quote, x: 0.5, y: 4.4, w: 0.35, h: 0.35 });
+    s.addImage({ data: quoteDark, x: 0.5, y: 4.4, w: 0.35, h: 0.35 });
     s.addText("Individual effort starts the journey; teamwork completes it.", {
       x: 1.05, y: 4.3, w: 8.4, h: 0.55, margin: 0, isTextBox: true, valign: "middle",
-      fontFace: SERIF, fontSize: 20, italic: true, color: C.gold,
+      fontFace: SERIF, fontSize: 20, italic: true, color: C.rose,
     });
     s.addNotes("One team: break silos, share knowledge, solve problems together, communicate openly and respectfully, and support colleagues through challenges. Key message: Individual effort starts the journey; teamwork completes it.");
   }
@@ -340,7 +339,7 @@ async function darkBackground() {
     s.addShape(pres.shapes.ROUNDED_RECTANGLE, {
       x: 0.5, y: 2.65, w: 3.5, h: 2.3, rectRadius: 0.12, fill: { color: C.navy }, line: { color: C.navy }, shadow: shadow(),
     });
-    s.addImage({ data: await icon(fa.FaLightbulb, C.gold), x: 0.8, y: 2.9, w: 0.45, h: 0.45 });
+    s.addImage({ data: await icon(fa.FaLightbulb, C.silver), x: 0.8, y: 2.9, w: 0.45, h: 0.45 });
     s.addText("The future belongs to organizations that are willing to evolve.", {
       x: 0.8, y: 3.5, w: 2.95, h: 1.3, margin: 0, isTextBox: true, valign: "top",
       fontFace: SERIF, fontSize: 18, italic: true, color: C.white,
@@ -375,18 +374,18 @@ async function darkBackground() {
     s.background = { color: C.light };
     // right half-bleed dark panel
     s.addImage({ data: bg, x: 6.4, y: 0, w: 3.6, h: 5.625, sizing: { type: "cover", w: 3.6, h: 5.625 } });
-    addLogo(s, true);
+    addLogo(s);
     s.addText("06   OWNERSHIP & ACCOUNTABILITY", {
       x: 0.5, y: 0.3, w: 5.5, h: 0.3, margin: 0, isTextBox: true,
       fontFace: HEAD, fontSize: 10, bold: true, charSpacing: 4, color: C.gold,
     });
     s.addText("DAWODIA HOLDING  ·  OUR VALUES", {
       x: 0.5, y: 5.2, w: 4, h: 0.25, margin: 0, isTextBox: true,
-      fontFace: HEAD, fontSize: 8, charSpacing: 3, color: "8A94A1",
+      fontFace: HEAD, fontSize: 8, charSpacing: 3, color: "9A8C92",
     });
     s.addText("07", {
       x: 9.0, y: 5.2, w: 0.5, h: 0.25, margin: 0, isTextBox: true, align: "right",
-      fontFace: HEAD, fontSize: 8, color: "8FA3B8",
+      fontFace: HEAD, fontSize: 8, color: "D2B3BF",
     });
     s.addText("Take Ownership.\nDeliver Results.", {
       x: 0.5, y: 0.7, w: 5.6, h: 1.2, margin: 0, isTextBox: true, valign: "top",
@@ -411,14 +410,14 @@ async function darkBackground() {
       });
       y += 0.6;
     });
-    await iconBadge(s, fa.FaFlagCheckered, 6.9, 1.6, 0.75, C.gold, C.navy);
+    await iconBadge(s, fa.FaFlagCheckered, 6.9, 1.6, 0.75, C.silver, C.navy);
     s.addText("Ownership turns responsibility into results.", {
       x: 6.9, y: 2.6, w: 2.6, h: 1.6, margin: 0, isTextBox: true, valign: "top",
       fontFace: SERIF, fontSize: 22, italic: true, color: C.white,
     });
     s.addText("KEY MESSAGE", {
       x: 6.9, y: 4.4, w: 2.6, h: 0.3, margin: 0, isTextBox: true,
-      fontFace: HEAD, fontSize: 9, bold: true, charSpacing: 4, color: C.gold,
+      fontFace: HEAD, fontSize: 9, bold: true, charSpacing: 4, color: C.silver,
     });
     s.addNotes("Ownership and accountability: own commitments and deadlines, raise problems early and clearly, don't let issues become crises, focus on solutions, and learn from every result. Key message: Ownership turns responsibility into results.");
   }
@@ -450,7 +449,7 @@ async function darkBackground() {
         x, y, w, h, rectRadius: 0.1,
         fill: { color: dark ? C.navy : C.light }, line: { color: dark ? C.navy : "E3E8EF" },
       });
-      await iconBadge(s, I, x + 0.2, y + 0.22, 0.55, dark ? C.gold : C.navy, dark ? C.navy : C.gold);
+      await iconBadge(s, I, x + 0.2, y + 0.22, 0.55, dark ? C.silver : C.navy, dark ? C.navy : C.white);
       s.addText(t, {
         x: x + 0.2, y: y + 0.9, w: w - 0.3, h: h - 1.05, margin: 0, isTextBox: true, valign: "top",
         fontFace: BODY, fontSize: 13, color: dark ? C.white : C.ink,
@@ -463,23 +462,23 @@ async function darkBackground() {
   {
     const s = pres.addSlide();
     s.background = { data: bg };
-    addLogo(s, true);
-    s.addImage({ data: quote, x: 0.6, y: 1.2, w: 0.6, h: 0.6 });
+    addLogo(s);
+    s.addImage({ data: quoteDark, x: 0.6, y: 1.2, w: 0.6, h: 0.6 });
     s.addText([
-      { text: "Our future is not something we wait for.", options: { color: "D5DEE8", breakLine: true } },
+      { text: "Our future is not something we wait for.", options: { color: "F1E1E7", breakLine: true } },
       { text: "Our future is something we build—", options: { color: C.white, bold: true } },
-      { text: "together.", options: { color: C.gold, bold: true } },
+      { text: "together.", options: { color: C.rose, bold: true } },
     ], {
       x: 0.6, y: 2.0, w: 8.6, h: 1.8, margin: 0, isTextBox: true, valign: "top",
       fontFace: SERIF, fontSize: 30, paraSpaceAfter: 8,
     });
     s.addText("THANK YOU", {
       x: 0.6, y: 4.5, w: 4, h: 0.3, margin: 0, isTextBox: true,
-      fontFace: HEAD, fontSize: 11, bold: true, charSpacing: 6, color: C.gold,
+      fontFace: HEAD, fontSize: 11, bold: true, charSpacing: 6, color: C.silver,
     });
     s.addText("Dawodia Holding  ·  One Organization. One Vision. One Direction.", {
       x: 0.6, y: 4.85, w: 8, h: 0.3, margin: 0, isTextBox: true,
-      fontFace: HEAD, fontSize: 10, color: "8FA3B8",
+      fontFace: HEAD, fontSize: 10, color: "D2B3BF",
     });
     s.addNotes("Closing: Our future is not something we wait for. Our future is something we build—together. Thank you.");
   }
