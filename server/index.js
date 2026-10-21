@@ -12,7 +12,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = path.join(__dirname, 'data');
 const CLIENT_DIST = path.join(__dirname, '..', 'client', 'dist');
 const PORT = Number(process.env.PORT) || 5000;
-const isProd = process.env.NODE_ENV === 'production';
+const isProd = process.env.NODE_ENV === 'production' || process.argv.includes('--production');
 
 const app = express();
 app.disable('x-powered-by');
