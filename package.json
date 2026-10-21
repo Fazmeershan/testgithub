@@ -1,0 +1,24 @@
+{
+  "name": "dawodia-holding-website",
+  "version": "1.0.0",
+  "description": "Dawodia Holding corporate website (React frontend, Node.js backend)",
+  "scripts": {
+    "install:all": "npm install && npm install --prefix client && npm install --prefix server",
+    "dev": "concurrently -n server,client -c magenta,cyan \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
+    "build": "npm run build --prefix client",
+    "start": "npm start --prefix server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Fazmeershan/testgithub.git"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Fazmeershan/testgithub/issues"
+  },
+  "homepage": "https://github.com/Fazmeershan/testgithub#readme",
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  },
+  "private": true
+}
